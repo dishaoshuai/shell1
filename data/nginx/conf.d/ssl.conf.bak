@@ -1,0 +1,30 @@
+server
+{
+        listen                  443;
+#        server_name    slb001.tdgod.com;
+        keepalive_timeout       300;
+
+        ssl                     on;
+        ssl_certificate         /etc/pki/tls/certs/tdgod.com_bundle.crt;
+        ssl_certificate_key     /etc/pki/tls/certs/tdgod.com.key;
+        ssl_session_timeout     5m;
+        ssl_session_cache       shared:SSL:50m;
+        ssl_protocols           TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers             ALL:!ADH:!EXPORT56:!EXPORT:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+add_header Access-Control-Allow-Credentials true; #是否携带cookie
+add_header Access-Control-Allow-Origin $http_origin; #如果配置所有来源会有安全性问题,所以这里可以指定来源,如:xxx.xxx.com
+add_header Access-Control-Allow-Methods $http_access_control_request_method; #允许的请求类型
+add_header Access-Control-Allow-Headers $http_access_control_request_headers; #允许的header
+add_header Access-Control-Max-Age 1728000; #在此时间内不在发送预检请求
+location ~ /(\d+)/(.*)
+    {
+         proxy_set_header X-Forwarded-For $remote_addr;
+         proxy_set_header        X-Real-IP $remote_addr;
+         proxy_pass                     http://127.0.0.1:$1/$2?$args;
+                proxy_http_version      1.1;
+                proxy_read_timeout      300;
+                proxy_set_header        Upgrade $http_upgrade;
+                proxy_set_header        Connection "Upgrade";
+                proxy_set_header        X-Real-IP $remote_addr;
+    }
+}
